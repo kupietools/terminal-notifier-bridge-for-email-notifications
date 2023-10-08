@@ -7,7 +7,7 @@ The notification this creates can be clicked to open the email directly if a wor
 I previously used this to receive calls from TB's Mailbox Alert plugin. It should still work for that purpose, but that plugin hasn't been updated to work with TB 115 as of this writing.
 
 This bridge can be used with FiltaQuilla's "Run Application" filter action by specifying the following line as the application for the action to run:
-/path/to/terminalNotifierBridgeForThunderbird.sh,-j,@SUBJECT@,-u,@MESSAGEURI@,-s,@AUTHOR@,-d,@date@
+`/path/to/terminalNotifierBridgeForThunderbird.sh,-j,@SUBJECT@,-u,@MESSAGEURI@,-s,@AUTHOR@,-d,@date@`
 
 To install, you will first need to download Terminal-Notifier.app from the above link, then you will need simply download this script, fill in the variables in the "USER CONFIGURATION" section to point it to your copies of Terminal-Notifier and Thunderbird. Then either create your alert in Mailbox Alert, or set up a "Run Application" filter action in FiltaQuilla as described above.
 
@@ -19,4 +19,4 @@ Only tested on Thunderbird, with Mailbox Alert prior to TB v115 and FiltaQuilla 
 
 # FYI
 
-Just so you are aware, this script creates an invisible folder called .terminalNotifierForThunderbird in your home directory, for purpose of tracking dupes and keeping a lockfile to prevent simultaneously trying to execute more than one instance of Terminal-Notifier at a time. You can safely delete this folder at any time, although if you choose to prohibit duplicate notifications in the settings below, deleting it will reset the duplicate tracking and the next appearance of any subsequent notification will never register as a dupe.
+Just so you are aware, this script creates an invisible folder called `.terminalNotifierForThunderbird` in your home directory, for purpose of tracking dupes and keeping a lockfile to prevent simultaneously trying to execute more than one instance of Terminal-Notifier at a time. You can safely delete this folder at any time, although if you choose to prohibit duplicate notifications in the settings below, deleting it will reset the duplicate tracking and the next appearance of any subsequent notification will never register as a dupe. The folder will be recreated every time the script runs. 
