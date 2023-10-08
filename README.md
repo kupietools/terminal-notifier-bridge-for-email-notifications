@@ -17,6 +17,6 @@ You will also need to set up your system to allow notifications from Terminal-No
 
 Only tested on Thunderbird, with Mailbox Alert prior to TB v115 and FiltaQuilla since then. This script may possibly work with, either directly or with minor modifications, with other email programs or plugins besides Thunderbird, as for most of what it does it doesn't particularly care where the information is coming from. However, warning: it has only been tested with the above, and support for anything else (or any support at all) may not be available.
 
-#FYI
+# FYI
 
 Just so you are aware, this script creates an invisible folder called .terminalNotifierForThunderbird in your home directory, for purpose of tracking dupes and keeping a lockfile to prevent simultaneously trying to execute more than one instance of Terminal-Notifier at a time. You can safely delete this folder at any time, although if you choose to prohibit duplicate notifications in the settings below, deleting it will reset the duplicate tracking and the next appearance of any subsequent notification will never register as a dupe.
