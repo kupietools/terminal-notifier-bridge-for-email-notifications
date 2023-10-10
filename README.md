@@ -9,7 +9,17 @@ I previously used this to receive calls from TB's Mailbox Alert plugin. It shoul
 This bridge can be used with FiltaQuilla's "Run Application" filter action by specifying the following line as the application for the action to run:
 `/path/to/terminalNotifierBridgeForThunderbird.sh,-j,@SUBJECT@,-u,@MESSAGEURI@,-s,@AUTHOR@,-d,@date@`
 
+# Requirements
+
 To install, you will first need to download Terminal-Notifier.app from the above link, then you will need simply download this script, fill in the variables in the "USER CONFIGURATION" section to point it to your copies of Terminal-Notifier and Thunderbird. Then either create your alert in Mailbox Alert, or set up a "Run Application" filter action in FiltaQuilla as described above.
+
+Due to MacOS's totally fun and not at all overly cumbersome security requirements, you may need to set the script as unquarantined and executable before you can run it. On MacOS X 10.14.6, you can do that by opening Terminal.app and typing the following commands, filling in your correct local path to the script:
+
+```
+xattr -d com.apple.quarantine /path/to/terminalNotifierBridgeForThunderbird.sh 
+chmod +x /path/to/terminalNotifierBridgeForThunderbird.sh 
+```
+If you're on a different version of MacOS, you may need to find the commands for your particular system.
 
 You will also need to set up your system to allow notifications from Terminal-Notifier. I have assumed some competency on your part in these instructions, if any of this is unclear you maybe aren't at a level where you should be messing with this kind of customization. 
 
