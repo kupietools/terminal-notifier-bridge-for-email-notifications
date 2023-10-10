@@ -11,7 +11,7 @@
 #
 # Just so you are aware, this script creates an invisible folder called .terminalNotifierForThunderbird in your home directory, for purpose of tracking dupes and keeping a lockfile to prevent simultaneously executing more than once at a time. You can safely delete this folder at any time, although if you choose to prohibit duplicate notifications in the settings below, you will reset the duplicate tracking by deleting it and the next appearance of any subsequent notification will never register as a dupe.
 #
-#Be excellent to each other. 
+# Be excellent to each other. 
 #
 #Michael Kupietz
 #FileMaker, Web, and IT Support consulting: https://kupietz.com
