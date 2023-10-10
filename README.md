@@ -21,7 +21,9 @@ chmod +x /path/to/terminalNotifierBridgeForThunderbird.sh
 ```
 If you're on a different version of MacOS, you may need to find the commands for your particular system.
 
-You will also need to set up your system to allow notifications from Terminal-Notifier. I have assumed some competency on your part in these instructions, if any of this is unclear you maybe aren't at a level where you should be messing with this kind of customization. 
+You will also need to set up your system to allow notifications from Terminal-Notifier. 
+
+I have assumed some competency on your part in these instructions, if any of this is unclear to you, you maybe aren't yet at a level where you should be messing with this kind of customization. Keep at it, you'll get there. But for now don't mess around. 
 
 # Compatibility
 
