@@ -5,7 +5,8 @@
 # Clicking the alerts will open the email directly in Thunderbird.
 #
 # This bridge can be used with FiltaQuilla's "Run Application" filter action by specifying the following line (minus the beginning # mark) as the application for the action to run:
-# /path/to/terminalNotifierBridgeForThunderbird.sh,-j,@SUBJECT@,-u,@MESSAGEURI@,-s,@AUTHOR@,-d,@date@
+# /path/to/terminalNotifierBridgeForThunderbird.sh,-j,@SUBJECT@,-u,@MESSAGEURI@,-s,@AUTHOR@,-d,@DATE@
+# (Note: Once FiltaQuilla's javascript actions is updated with @FOLDERNAME@, as seems imminent as of this posting, you can also add ,-f,@FOLDERNAME@ to the end of that line. 
 #
 # See the readme.md in the original github repo this is from for fuller information: https://github.com/kupietools/terminal-notifier-bridge-for-thunderbird/
 #
@@ -13,11 +14,11 @@
 #
 # Be excellent to each other. 
 #
-#Michael Kupietz
-#FileMaker, Web, and IT Support consulting: https://kupietz.com
-#Personal site: https://michaelkupietz.com
+# Michael Kupietz
+# FileMaker, Web, and IT Support consulting: https://kupietz.com
+# Personal site: https://michaelkupietz.com
 #
-#This code is (c) 2023 Michael Kupietz and covered by the GPL 3.0 or later license, included in a companion file in this repo. Any use requires the accompanying license file to be included. 
+# This code is (c) 2023 Michael Kupietz and covered by the GPL 3.0 or later license, included in a companion file in this repo. Any use requires the accompanying license file to be included. 
 
 ###### USER CONFIGURATION: #####
 
@@ -25,8 +26,12 @@
 pathToTerminalNotifierApp="/Applications/terminal-notifier.app"
 pathToThunderbird="/Applications/Thunderbird.app"
 
- #Prevent duplicate notifications for the same email in the same folder? (It only looks back across the last 1000 email notifications for purposes of finding dupes. It considers folders, so if an email has moved to a different folder, a new notification for it will not be considered a duplicate.)
+# Prevent duplicate notifications for the same email in the same folder? (It only looks back across the last 1000 email notifications for purposes of finding dupes. It considers folders, so if an email has moved to a different folder, a new notification for it will not be considered a duplicate.)
 prohibitDupes=false;
+
+# Uncomment the following line to save the latest parameters received to ~/.terminalNotifierForThunderbird/parameters.log (for testing purposes only)
+echo "$@" > ~/.terminalNotifierForThunderbird/parameters.log
+
 
 ###### END USER CONFIGURATION #####
 
@@ -45,8 +50,9 @@ echo "trying ${flag}"
     esac
 done
 
-thefolder=$(basename "$themsg_uri" | sed -e "s/[#0-9]*$//g")
+thefolder=${thefolder:=$(basename "$themsg_uri" | sed -e "s/[#0-9]*$//g")}
 # that's right, it seems like the folder isn't always sent correctly (or ever) by Mailbox Alert so we'll parse it from the uri. 
+# Updated 2003oct10 to check and see if it's been set by a flag before parsing from URI, since FiltaQuilla author seems like he's going to add foldername as a passable token in javascript actions
 
 mkdir -p ~/.terminalNotifierForThunderbird/
 
@@ -81,7 +87,7 @@ else
 
     #run that puppy.
 
-    "$pathToTerminalNotifierApp"/Contents/MacOS/terminal-notifier -title "$thedate $thesender $thetime" -subtitle "$thedate $thesubject" -message "$thefolder" -execute "$pathToThunderbird/Contents/MacOS/thunderbird-bin -mail \"$themsg_uri\"" -appIcon "file:///Applications/Thunderbird.app/Contents/Resources/thunderbird.icns"
+    "$pathToTerminalNotifierApp"/Contents/MacOS/terminal-notifier -title "$thedate $thesender $thetime" -subtitle "$thedate $thesubject" -message "$thefolder" -execute "$pathToThunderbird/Contents/MacOS/thunderbird-bin -mail \"$themsg_uri\"" -appIcon "file://$pathToThunderbird/Contents/Resources/thunderbird.icns"
     # removed -group "$themsg_uri" , shouldn't need it now
 
 fi
