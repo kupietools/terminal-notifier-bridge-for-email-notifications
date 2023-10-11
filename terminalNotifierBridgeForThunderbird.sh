@@ -4,6 +4,14 @@
 #
 # Clicking the alerts will open the email directly in Thunderbird.
 #
+# This script accepts the following command line flags specifying info which the notification will display:
+#        -s sender
+#        -d date
+#        -t time
+#        -j subject
+#        -f mail folder (this will be parsed from the message URI if not supplied explicitly)
+#        -u mail message URI (this is not displayed, but is needed to have clicking on the alert open the message in TB.  
+#
 # This bridge can be used with FiltaQuilla's "Run Application" filter action by specifying the following line (minus the beginning # mark) as the application for the action to run:
 # /path/to/terminalNotifierBridgeForThunderbird.sh,-j,@SUBJECT@,-u,@MESSAGEURI@,-s,@AUTHOR@,-d,@DATE@
 # (Note: Once FiltaQuilla's javascript actions is updated with @FOLDERNAME@, as seems imminent as of this posting, you can also add ,-f,@FOLDERNAME@ to the end of that line. 
