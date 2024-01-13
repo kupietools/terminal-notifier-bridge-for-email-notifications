@@ -1,8 +1,7 @@
 #!/bin/bash
-
 # I previously used this to receive calls from TB's Mailbox Alert plugin and display clickable alerts in Terminal-Notifier.app for MacOS <https://github.com/julienXX/terminal-notifier>. It should still work for that purpose, but the plugin hasn't been updated to work with TB 115 as of this writing.
 #
-# Clicking the alerts will open the email directly in Thunderbird.
+# Clicking the alerts will open the email directly in Thunderbird or Betterbird, whichever is open.
 #
 # This script accepts the following command line flags specifying info which the notification will display:
 #        -s sender
@@ -27,29 +26,23 @@
 # Personal site: https://michaelkupietz.com
 #
 # This code is (c) 2023 Michael Kupietz and covered by the GPL 3.0 or later license, included in a companion file in this repo. Any use requires the accompanying license file to be included. 
-
 ###### USER CONFIGURATION: #####
-
 # set these to the paths to your Terminal-Notifier and Thunderbird apps:
 pathToTerminalNotifierApp="/Applications/terminal-notifier.app"
 pathToThunderbird="/Applications/Thunderbird.app"
-
+pathToBetterbird="/Applications/Betterbird.app"
 # Prevent duplicate notifications for the same email in the same folder? (It only looks back across the last 1000 email notifications for purposes of finding dupes. It considers folders, so if an email has moved to a different folder, a new notification for it will not be considered a duplicate.)
 prohibitDupes=false;
-
 # Uncomment the following line to save the latest parameters received to ~/.terminalNotifierForThunderbird/parameters.log (for testing purposes only)
-echo "$@" > ~/.terminalNotifierForThunderbird/parameters.log
-
-
+ echo "$(date) - $@" >> ~/.terminalNotifierForThunderbird/parameters.log
 ###### END USER CONFIGURATION #####
-
-thedatein=0
+thedate=0
 while getopts s:d:t:j:f:u: flag
 do
 echo "trying ${flag}"
     case "${flag}" in
         s) thesender=${OPTARG};;
-        d) thedatein=${OPTARG};;
+        d) thedate=${OPTARG};;
         t) thetime=${OPTARG};;
         j) thesubject=${OPTARG};;
         f) thefolder=${OPTARG};;
@@ -57,17 +50,12 @@ echo "trying ${flag}"
 #not really using it        g) thegroup=${OPTARG}};;
     esac
 done
-
 thefolder=${thefolder:=$(basename "$themsg_uri" | sed -e "s/[#0-9]*$//g")}
 # that's right, it seems like the folder isn't always sent correctly (or ever) by Mailbox Alert so we'll parse it from the uri. 
-# Updated 2003oct10 to check and see if it's been set by a flag before parsing from URI, since FiltaQuilla author seems like he's going to add foldername as a passable token in javascript actions
-
+# Updated 2023oct10 to check and see if it's been set by a flag before parsing from URI, since FiltaQuilla author seems like he's going to add foldername as a passable token in javascript actions
 mkdir -p ~/.terminalNotifierForThunderbird/
-
 count=0
-
 # use a lockfile to make sure TerminalNotifier isn't launched more than once at a time
-
 until [[ ! -f  ~/.terminalNotifierForThunderbird/emailNotifierlockfile ]]
 do
     sleep 1
@@ -78,37 +66,36 @@ do
     rm -fR ~/.terminalNotifierForThunderbird/emailNotifierlockfile
     fi
 done
-
 trap 'rm -fR ~/.terminalNotifierForThunderbird/emailNotifierlockfile; exit $?' INT TERM EXIT
 echo "$(date)" > ~/.terminalNotifierForThunderbird/emailNotifierlockfile
-
 if [ -n "${thefolder}" ]
 then
     if $prohibitDupes && grep -Fq "$themsg_uri" ~/.terminalNotifierForThunderbird/emailnotifications.log
-then
-
-echo "$(date): NO NOTIFICATION, dupe found. thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
-
+    then
+        echo "$(date): NO NOTIFICATION, dupe found. thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
+    else
+        datediff=$(echo "($(date +%s) - $(date -j -f "%a %b %d %Y %H:%M:%S GMT%z" "Thu Jan 8 2024 03:09:18 GMT-0500" "+%s")) / 3600 / 24"|bc)
+        if [[ $datediff -lt 30 ]]
+        then
+            #only notify for emails dated within the last 30 days because fucking Thunderbird is stoopit.
+            echo "$(date): Notifying. thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
+            #run that puppy.
+            if [ $(pgrep betterbird) ]
+            then
+            "$pathToTerminalNotifierApp"/Contents/MacOS/terminal-notifier -title "$thesender $thedate $thetime" -subtitle "$thesubject" -message "$thefolder" -execute "$pathToBetterbird/Contents/MacOS/betterbird-bin -mail \"$themsg_uri\"" -appIcon "file://$pathToBetterbird/Contents/Resources/betterbird.icns"
 else
-
-    echo "$(date): Notifying. thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
-
-    #run that puppy.
-
-    "$pathToTerminalNotifierApp"/Contents/MacOS/terminal-notifier -title "$thedate $thesender $thetime" -subtitle "$thedate $thesubject" -message "$thefolder" -execute "$pathToThunderbird/Contents/MacOS/thunderbird-bin -mail \"$themsg_uri\"" -appIcon "file://$pathToThunderbird/Contents/Resources/thunderbird.icns"
-    # removed -group "$themsg_uri" , shouldn't need it now
-
-fi
+            "$pathToTerminalNotifierApp"/Contents/MacOS/terminal-notifier -title "$thesender $thedate $thetime" -subtitle "$thesubject" -message "$thefolder" -execute "$pathToThunderbird/Contents/MacOS/thunderbird-bin -mail \"$themsg_uri\"" -appIcon "file://$pathToThunderbird/Contents/Resources/thunderbird.icns"
+fo            # removed -group "$themsg_uri" , shouldn't need it now
+        else
+            echo "$(date): Not Notifying because date is over 30 days ago. datediff: $datediff thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
+        fi
+    fi
 else
     echo "$(date): NO FOLDER SPECIFIED thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
 fi
-
 echo "$(tail -1000 ~/.terminalNotifierForThunderbird/emailnotifications.log | sed -E 's/^   [0-9]+ //' | uniq -c)" > ~/.terminalNotifierForThunderbird/emailnotifications.log.tmp
 # tail to limit to 1000 lines, then sed to remove dupe total readout left by previous uniq, then dedupe with uniq
-
 mv ~/.terminalNotifierForThunderbird/emailnotifications.log.tmp ~/.terminalNotifierForThunderbird/emailnotifications.log
 rm -Rf ~/.terminalNotifierForThunderbird/emailnotifications.log.tmp
-
 # if you read and write from a single file at the same time, you can get unlucky and get a race condition where it writes before it's done reading, erasing the file. 
-
 rm  -fR ~/.terminalNotifierForThunderbird/emailNotifierlockfile
