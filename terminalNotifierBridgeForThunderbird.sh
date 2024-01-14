@@ -34,7 +34,7 @@ pathToBetterbird="/Applications/Betterbird.app"
 # Prevent duplicate notifications for the same email in the same folder? (It only looks back across the last 1000 email notifications for purposes of finding dupes. It considers folders, so if an email has moved to a different folder, a new notification for it will not be considered a duplicate.)
 prohibitDupes=false;
 #Keep a logfile showing just the last parameters sent, replacing the entire logfile with each new call to this script, rather than just tacking a log entry onto the bottom of the previous ones
-onlyLogLastParametersSent=false;
+onlyLogLastParametersSent=true;
 # Uncomment the following line to save the latest parameters received to ~/.terminalNotifierForThunderbird/parameters.log (for testing purposes only)
 
 ###### END USER CONFIGURATION #####
@@ -52,11 +52,11 @@ echo "trying ${flag}"
 #not really using it        g) thegroup=${OPTARG}};;
     esac
 done
-if [ $onlyLogLastParametersSent ]
+if [ $onlyLogLastParametersSent == true ]
 then
- echo "$(date) - -s \"$thesender\" -d \"$thedate\" -t \"$thetime\" -j \"$thesubject\" -f \"$thefolder\" -u \"themesg_uri\" " > ~/.terminalNotifierForThunderbird/parameters.log
+ echo "$(date) - -s \"$thesender\" -d \"$thedate\" -t \"$thetime\" -j \"$thesubject\" -f \"$thefolder\" -u \"$themesg_uri\" " > ~/.terminalNotifierForThunderbird/parameters.log
 else
- echo "$(date) - -s \"$thesender\" -d \"$thedate\" -t \"$thetime\" -j \"$thesubject\" -f \"$thefolder\" -u \"themesg_uri\" " >> ~/.terminalNotifierForThunderbird/parameters.log
+ echo "$(date) - -s \"$thesender\" -d \"$thedate\" -t \"$thetime\" -j \"$thesubject\" -f \"$thefolder\" -u \"$themesg_uri\" " >> ~/.terminalNotifierForThunderbird/parameters.log
 fi
 
 thefolder=${thefolder:=$(basename "$themsg_uri" | sed -e "s/[#0-9]*$//g")}
@@ -87,7 +87,7 @@ then
         datediff=$(echo "($(date +%s) - $(date -j -f "%a %b %d %Y %H:%M:%S GMT%z" "Thu Jan 8 2024 03:09:18 GMT-0500" "+%s")) / 3600 / 24"|bc)
         if [[ $datediff -lt 30 ]]
         then
-            #only notify for emails dated within the last 30 days because fucking Thunderbird is stoopit.
+            #only notify for emails dated within the last 30 days because f@$&!^@ Thunderbird is stoopit.
             echo "$(date): Notifying. thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
             #run that puppy.
             if [ $(pgrep betterbird) ]
