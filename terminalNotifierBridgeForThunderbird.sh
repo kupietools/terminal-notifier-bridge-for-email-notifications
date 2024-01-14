@@ -1,7 +1,7 @@
 #!/bin/bash
 # I previously used this to receive calls from TB's Mailbox Alert plugin and display clickable alerts in Terminal-Notifier.app for MacOS <https://github.com/julienXX/terminal-notifier>. It should still work for that purpose, but the plugin hasn't been updated to work with TB 115 as of this writing.
 #
-# Clicking the alerts will open the email directly in Thunderbird or Betterbird, whichever is open.
+# Clicking the alerts will open the email directly in Thunderbird.
 #
 # This script accepts the following command line flags specifying info which the notification will display:
 #        -s sender
@@ -33,8 +33,10 @@ pathToThunderbird="/Applications/Thunderbird.app"
 pathToBetterbird="/Applications/Betterbird.app"
 # Prevent duplicate notifications for the same email in the same folder? (It only looks back across the last 1000 email notifications for purposes of finding dupes. It considers folders, so if an email has moved to a different folder, a new notification for it will not be considered a duplicate.)
 prohibitDupes=false;
+#Keep a logfile showing just the last parameters sent, replacing the entire logfile with each new call to this script, rather than just tacking a log entry onto the bottom of the previous ones
+onlyLogLastParametersSent=false;
 # Uncomment the following line to save the latest parameters received to ~/.terminalNotifierForThunderbird/parameters.log (for testing purposes only)
- echo "$(date) - $@" >> ~/.terminalNotifierForThunderbird/parameters.log
+
 ###### END USER CONFIGURATION #####
 thedate=0
 while getopts s:d:t:j:f:u: flag
@@ -50,7 +52,15 @@ echo "trying ${flag}"
 #not really using it        g) thegroup=${OPTARG}};;
     esac
 done
+if [ $onlyLogLastParametersSent ]
+then
+ echo "$(date) - -s \"$thesender\" -d \"$thedate\" -t \"$thetime\" -j \"$thesubject\" -f \"$thefolder\" -u \"themesg_uri\" " > ~/.terminalNotifierForThunderbird/parameters.log
+else
+ echo "$(date) - -s \"$thesender\" -d \"$thedate\" -t \"$thetime\" -j \"$thesubject\" -f \"$thefolder\" -u \"themesg_uri\" " >> ~/.terminalNotifierForThunderbird/parameters.log
+fi
+
 thefolder=${thefolder:=$(basename "$themsg_uri" | sed -e "s/[#0-9]*$//g")}
+
 # that's right, it seems like the folder isn't always sent correctly (or ever) by Mailbox Alert so we'll parse it from the uri. 
 # Updated 2023oct10 to check and see if it's been set by a flag before parsing from URI, since FiltaQuilla author seems like he's going to add foldername as a passable token in javascript actions
 mkdir -p ~/.terminalNotifierForThunderbird/
@@ -83,9 +93,10 @@ then
             if [ $(pgrep betterbird) ]
             then
             "$pathToTerminalNotifierApp"/Contents/MacOS/terminal-notifier -title "$thesender $thedate $thetime" -subtitle "$thesubject" -message "$thefolder" -execute "$pathToBetterbird/Contents/MacOS/betterbird-bin -mail \"$themsg_uri\"" -appIcon "file://$pathToBetterbird/Contents/Resources/betterbird.icns"
-else
+            else
             "$pathToTerminalNotifierApp"/Contents/MacOS/terminal-notifier -title "$thesender $thedate $thetime" -subtitle "$thesubject" -message "$thefolder" -execute "$pathToThunderbird/Contents/MacOS/thunderbird-bin -mail \"$themsg_uri\"" -appIcon "file://$pathToThunderbird/Contents/Resources/thunderbird.icns"
-fo            # removed -group "$themsg_uri" , shouldn't need it now
+            # removed -group "$themsg_uri" , shouldn't need it now
+            fi
         else
             echo "$(date): Not Notifying because date is over 30 days ago. datediff: $datediff thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
         fi
