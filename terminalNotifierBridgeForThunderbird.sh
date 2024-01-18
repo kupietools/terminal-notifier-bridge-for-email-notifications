@@ -34,7 +34,7 @@ pathToBetterbird="/Applications/Betterbird.app"
 # Prevent duplicate notifications for the same email in the same folder? (It only looks back across the last 1000 email notifications for purposes of finding dupes. It considers folders, so if an email has moved to a different folder, a new notification for it will not be considered a duplicate.)
 prohibitDupes=false;
 #Keep a logfile showing just the last parameters sent, replacing the entire logfile with each new call to this script, rather than just tacking a log entry onto the bottom of the previous ones
-onlyLogLastParametersSent=true;
+onlyLogLastParametersSent=false;
 # Uncomment the following line to save the latest parameters received to ~/.terminalNotifierForThunderbird/parameters.log (for testing purposes only)
 
 ###### END USER CONFIGURATION #####
@@ -52,6 +52,13 @@ echo "trying ${flag}"
 #not really using it        g) thegroup=${OPTARG}};;
     esac
 done
+
+
+thefolder=${thefolder:=$(basename "$themsg_uri" | sed -e "s/[#0-9]*$//g")}
+
+# that's right, it seems like the folder isn't always sent correctly (or ever) by Mailbox Alert so we'll parse it from the uri. 
+# Updated 2023oct10 to check and see if it's been set by a flag before parsing from URI, since FiltaQuilla author seems like he's going to add foldername as a passable token in javascript actions
+
 if [ $onlyLogLastParametersSent == true ]
 then
  echo "$(date) - -s \"$thesender\" -d \"$thedate\" -t \"$thetime\" -j \"$thesubject\" -f \"$thefolder\" -u \"$themesg_uri\" " > ~/.terminalNotifierForThunderbird/parameters.log
@@ -59,10 +66,6 @@ else
  echo "$(date) - -s \"$thesender\" -d \"$thedate\" -t \"$thetime\" -j \"$thesubject\" -f \"$thefolder\" -u \"$themesg_uri\" " >> ~/.terminalNotifierForThunderbird/parameters.log
 fi
 
-thefolder=${thefolder:=$(basename "$themsg_uri" | sed -e "s/[#0-9]*$//g")}
-
-# that's right, it seems like the folder isn't always sent correctly (or ever) by Mailbox Alert so we'll parse it from the uri. 
-# Updated 2023oct10 to check and see if it's been set by a flag before parsing from URI, since FiltaQuilla author seems like he's going to add foldername as a passable token in javascript actions
 mkdir -p ~/.terminalNotifierForThunderbird/
 count=0
 # use a lockfile to make sure TerminalNotifier isn't launched more than once at a time
@@ -87,14 +90,15 @@ then
         datediff=$(echo "($(date +%s) - $(date -j -f "%a %b %d %Y %H:%M:%S GMT%z" "Thu Jan 8 2024 03:09:18 GMT-0500" "+%s")) / 3600 / 24"|bc)
         if [[ $datediff -lt 30 ]]
         then
-            #only notify for emails dated within the last 30 days because f@$&!^@ Thunderbird is stoopit.
+            #only notify for emails dated within the last 30 days because fucking Thunderbird is stoopit.
             echo "$(date): Notifying. thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
             #run that puppy.
-            if [ $(pgrep betterbird) ]
+            if pgrep -x betterbird >/dev/null 2>&1
+            #for some BASHful reason, 'if [ $(pgrep betterbird) ]' didn't work. Above does.
             then
-            "$pathToTerminalNotifierApp"/Contents/MacOS/terminal-notifier -title "$thesender $thedate $thetime" -subtitle "$thesubject" -message "$thefolder" -execute "$pathToBetterbird/Contents/MacOS/betterbird-bin -mail \"$themsg_uri\"" -appIcon "file://$pathToBetterbird/Contents/Resources/betterbird.icns"
+                 "$pathToTerminalNotifierApp"/Contents/MacOS/terminal-notifier -title "$thesender $thedate $thetime" -subtitle "$thesubject" -message "$thefolder" -execute "$pathToBetterbird/Contents/MacOS/betterbird-bin -mail \"$themsg_uri\"" -appIcon "file://$pathToBetterbird/Contents/Resources/betterbird.icns"
             else
-            "$pathToTerminalNotifierApp"/Contents/MacOS/terminal-notifier -title "$thesender $thedate $thetime" -subtitle "$thesubject" -message "$thefolder" -execute "$pathToThunderbird/Contents/MacOS/thunderbird-bin -mail \"$themsg_uri\"" -appIcon "file://$pathToThunderbird/Contents/Resources/thunderbird.icns"
+                 "$pathToTerminalNotifierApp"/Contents/MacOS/terminal-notifier -title "$thesender $thedate $thetime" -subtitle "$thesubject" -message "$thefolder" -execute "$pathToThunderbird/Contents/MacOS/thunderbird-bin -mail \"$themsg_uri\"" -appIcon "file://$pathToThunderbird/Contents/Resources/thunderbird.icns"
             # removed -group "$themsg_uri" , shouldn't need it now
             fi
         else
