@@ -40,10 +40,13 @@ prohibitDupes=false
 #Keep a logfile showing just the last parameters sent, replacing the entire logfile with each new call to this script, rather than just tacking a log entry onto the bottom of the previous ones
 onlyLogLastParametersSent=false
 
+#Length to trim log at.
+loglinelimit=1000
+
 #Following is a regular expression to indicate senders who should receive additional alerts via Applescript to make sure they're not missed. This is because MacOS's notifications suck mightily and I want to make absolutely sure I don't miss certain people's emails. set the following to "" to disable this functionality.
 urgentSendersRegex=".*@urgentsenderdomain.com|jane@doe.com"
 
-#Following turns on a lot of logging for debugging
+#Following turns on a lot of logging for debugging. TURNING THIS ON TURNS OFF LOG TRIMMING because I was losing debug info. So turn this off when you're done. When not in use, turn off the juice.
 overlyVerboseDebugging=true
 
 ###### END USER CONFIGURATION #####
@@ -73,9 +76,9 @@ fi
 
 if [ $onlyLogLastParametersSent == true ]
 then
- echo "$(date) - -s \"$thesender\" -d \"$thedate\" -t \"$thetime\" -j \"$thesubject\" -f \"$thefolder\" -u \"$themsg_uri\" -f \"$thefolder\"" > ~/.terminalNotifierForThunderbird/parameters.log
+     echo "$(date) - -s \"$thesender\" -d \"$thedate\" -t \"$thetime\" -j \"$thesubject\" -f \"$thefolder\" -u \"$themsg_uri\" -f \"$thefolder\"" > ~/.terminalNotifierForThunderbird/parameters.log
 else
- echo "$(date) - -s \"$thesender\" -d \"$thedate\" -t \"$thetime\" -j \"$thesubject\" -f \"$thefolder\" -u \"$themsg_uri\"  -f \"$thefolder\"" >> ~/.terminalNotifierForThunderbird/parameters.log
+     echo "$(date) - -s \"$thesender\" -d \"$thedate\" -t \"$thetime\" -j \"$thesubject\" -f \"$thefolder\" -u \"$themsg_uri\"  -f \"$thefolder\"" >> ~/.terminalNotifierForThunderbird/parameters.log
 fi
 
 mkdir -p ~/.terminalNotifierForThunderbird/
@@ -98,7 +101,7 @@ echo "$(date)" > ~/.terminalNotifierForThunderbird/emailNotifierlockfile
 
 if [ $overlyVerboseDebugging == true ]
 then
-     echo '\n\n◊◊◊◊◊ STARTING NEW EMAIL ◊◊◊◊◊\n\n' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo '◊◊◊◊◊ STARTING NEW EMAIL, DUDE ◊◊◊◊◊' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
      echo '◊◊◊◊◊dumping env: ' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
      env >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
      echo '◊◊◊◊◊Current (which pgrep):' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
@@ -171,8 +174,11 @@ fi
 
 #end urgent senders
 
-echo "$(tail -20000 ~/.terminalNotifierForThunderbird/emailnotifications.log | sed -E 's/^   [0-9]+ //' | uniq -c)" > ~/.terminalNotifierForThunderbird/emailnotifications.log.tmp
-# tail to limit to 1000 lines, then sed to remove dupe total readout left by previous uniq, then dedupe with uniq
+if [ ! $overlyVerboseDebugging == true ]
+then
+     echo "$(tail -$loglinelimit ~/.terminalNotifierForThunderbird/emailnotifications.log | sed -E 's/^   [0-9]+ //' | uniq -c)" > ~/.terminalNotifierForThunderbird/emailnotifications.log.tmp
+     # tail to limit to 1000 lines, then sed to remove dupe total readout left by previous uniq, then dedupe with uniq
+fi
 mv ~/.terminalNotifierForThunderbird/emailnotifications.log.tmp ~/.terminalNotifierForThunderbird/emailnotifications.log
 rm -Rf ~/.terminalNotifierForThunderbird/emailnotifications.log.tmp
 # if you read and write from a single file at the same time, you can get unlucky and get a race condition where it writes before it's done reading, erasing the file. 
