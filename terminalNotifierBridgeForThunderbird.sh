@@ -26,6 +26,19 @@
 # Personal site: https://michaelkupietz.com
 #
 # This code is (c) 2023 Michael Kupietz and covered by the GPL 3.0 or later license, included in a companion file in this repo. Any use requires the accompanying license file to be included. 
+#
+##### TROUBLESHOOTING NOTE:
+##### A note if you get the "bad interpreter" error while testing this in Terminal,  
+##### or, if this script stops working and there is no clear explanation:
+##### cd into this script's directory in Terminal and do: 
+#####    xattr -l terminalNotifierBridgeForThunderbird.sh
+##### if you see com.apple.quarantine listed in the output, do: 
+#####    xattr -d com.apple.quarantine terminalNotifierBridgeForThunderbird.sh 
+##### MacOS, among its many wonderful surprises, sometimes "quarantines" things  
+##### without warning and without giving you clear indication afterwards that it has.
+##### 
+#
+
 
 ###### USER CONFIGURATION: #####
 
