@@ -41,13 +41,14 @@ prohibitDupes=false
 onlyLogLastParametersSent=false
 
 #Length to trim log at.
-loglinelimit=1000
+loglinelimit=5000
 
 #Following is a regular expression to indicate senders who should receive additional alerts via Applescript to make sure they're not missed. This is because MacOS's notifications suck mightily and I want to make absolutely sure I don't miss certain people's emails. set the following to "" to disable this functionality.
 urgentSendersRegex=".*@urgentsenderdomain.com|jane@doe.com"
 
-#Following turns on a lot of logging for debugging. TURNING THIS ON TURNS OFF LOG TRIMMING because I was losing debug info. So turn this off when you're done. When not in use, turn off the juice.
-overlyVerboseDebugging=true
+#Following turns on a lot of logging for debugging. Maybe make the log length longer when this is on, because it creates so much more info a lot gets cut off!
+#I used to have it turn off the limit entirely when this was on, but that created such huge logs the script eventually failed.
+overlyVerboseDebugging=false
 
 ###### END USER CONFIGURATION #####
 
@@ -174,11 +175,11 @@ fi
 
 #end urgent senders
 
-if [ ! $overlyVerboseDebugging == true ]
-then
+#if [ ! $overlyVerboseDebugging == true ] ## NO See notes at top, this caused problems from the giant log files if I forgot to turn overlyVerboseDebugging back off.
+#then
      echo "$(tail -$loglinelimit ~/.terminalNotifierForThunderbird/emailnotifications.log | sed -E 's/^   [0-9]+ //' | uniq -c)" > ~/.terminalNotifierForThunderbird/emailnotifications.log.tmp
      # tail to limit to 1000 lines, then sed to remove dupe total readout left by previous uniq, then dedupe with uniq
-fi
+#fi
 mv ~/.terminalNotifierForThunderbird/emailnotifications.log.tmp ~/.terminalNotifierForThunderbird/emailnotifications.log
 rm -Rf ~/.terminalNotifierForThunderbird/emailnotifications.log.tmp
 # if you read and write from a single file at the same time, you can get unlucky and get a race condition where it writes before it's done reading, erasing the file. 
