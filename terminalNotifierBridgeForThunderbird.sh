@@ -1,7 +1,10 @@
 #!/bin/bash
-# I previously used this to receive calls from TB's Mailbox Alert plugin and display clickable alerts in Terminal-Notifier.app for MacOS <https://github.com/julienXX/terminal-notifier>. It should still work for that purpose, but the plugin hasn't been updated to work with TB 115 as of this writing.
 #
-# Clicking the alerts will open the email directly in Thunderbird.
+# Scroll down and set the User Configuration Settings before using.
+#
+##### INTRODUCTION #####
+#
+# I previously used this to receive calls from TB's Mailbox Alert plugin and display clickable alerts in Terminal-Notifier.app for MacOS <https://github.com/julienXX/terminal-notifier>. It should still work for that purpose, but the plugin hasn't been updated to work with TB 115 as of this writing.
 #
 # This script accepts the following command line flags specifying info which the notification will display:
 #        -s sender
@@ -15,6 +18,8 @@
 # /path/to/terminalNotifierBridgeForThunderbird.sh,-j,@SUBJECT@,-u,@MESSAGEURI@,-s,@AUTHOR@,-d,@DATE@
 # (Note: Once FiltaQuilla's javascript actions is updated with @FOLDERNAME@, as seems imminent as of this posting, you can also add ,-f,@FOLDERNAME@ to the end of that line. 
 #
+# Clicking the alerts will open the email directly in Thunderbird.
+#
 # See the readme.md in the original github repo this is from for fuller information: https://github.com/kupietools/terminal-notifier-bridge-for-thunderbird/
 #
 # Just so you are aware, this script creates an invisible folder called .terminalNotifierForThunderbird in your home directory, for purpose of tracking dupes and keeping a lockfile to prevent simultaneously executing more than once at a time. You can safely delete this folder at any time, although if you choose to prohibit duplicate notifications in the settings below, you will reset the duplicate tracking by deleting it and the next appearance of any subsequent notification will never register as a dupe.
@@ -25,10 +30,12 @@
 # FileMaker, Web, and IT Support consulting: https://kupietz.com
 # Personal site: https://michaelkupietz.com
 #
-# This code is (c) 2023 Michael Kupietz and covered by the GPL 3.0 or later license, included in a companion file in this repo. Any use requires the accompanying license file to be included. 
+# This code is (c) 2023-2024 Michael Kupietz and covered by the GPL 3.0 or later license, included in a companion file in this repo. Any use requires the accompanying license file to be included. 
 #
 ##### TROUBLESHOOTING NOTE:
+#####
 ##### A note if you get the "bad interpreter" error while testing this in Terminal,  
+##### the Filtaquilla action mysteriously starts failing or giving errors,
 ##### or, if this script stops working and there is no clear explanation:
 ##### cd into this script's directory in Terminal and do: 
 #####    xattr -l terminalNotifierBridgeForThunderbird.sh
@@ -36,9 +43,11 @@
 #####    xattr -d com.apple.quarantine terminalNotifierBridgeForThunderbird.sh 
 ##### MacOS, among its many wonderful surprises, sometimes "quarantines" things  
 ##### without warning and without giving you clear indication afterwards that it has.
-##### 
+##### In my experience, sometimes when you do the above, soon it's quarantined again,
+##### so keep an eye out and don't assume you'll only need to do that once.
 #
-
+# Update history
+# 2024feb29 Started keeping track of updates history. Fixed bug where wrong date was hardcoded into date checking, resulting in notifications never firing.
 
 ###### USER CONFIGURATION: #####
 
@@ -163,7 +172,7 @@ then
     then
         echo "$(date): NO NOTIFICATION, dupe found. thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
     else
-        datediff=$(echo "($(date +%s) - $(date -j -f "%a %b %d %Y %H:%M:%S GMT%z" "Thu Jan 8 2024 03:09:18 GMT-0500" "+%s")) / 3600 / 24"|bc)
+        datediff=$(echo "($(date +%s) - $(date -j -f "%a %b %d %Y %H:%M:%S GMT%z" "$thedate" "+%s")) / 3600 / 24"|bc)
         if [[ $datediff -lt 30 ]]
         then
             #only notify for emails dated within the last 30 days because fucking Thunderbird is stoopit.
