@@ -48,6 +48,7 @@
 #
 # Update history
 # 2024feb29 Started keeping track of updates history. Fixed bug where wrong date was hardcoded into date checking, resulting in notifications never firing.
+# 2024apr21 Disabled some of the ps functions that were creating unreadably long logs when overlyVerboseDebugging was true, added noNotifcationsForFolders array to skip notifications for emails in certain folders since evidentally Thunderbird is too stoopit to understand when a filter is told not to run on a certain folder 
 
 ###### USER CONFIGURATION: #####
 
@@ -55,6 +56,9 @@
 pathToTerminalNotifierApp="/Applications/terminal-notifier.app"
 pathToThunderbird="/Applications/Thunderbird.app"
 pathToBetterbird="/Applications/Betterbird.app"
+
+#Specify folder names NOT to show notifications for (IE Trash, Spam) in case these aren't filtered out by your calling filter in Thunderbird—or they are, but Thunderbird has a mind of its own and ofter doesn't really do what you tell it to. 
+noNotifcationsForFolders=("Spam","Trash")
 
 # Prevent duplicate notifications for the same email in the same folder? (It only looks back across the last 1000 email notifications for purposes of finding dupes. It considers folders, so if an email has moved to a different folder, a new notification for it will not be considered a duplicate.)
 prohibitDupes=false
@@ -91,11 +95,22 @@ done
 
 if [ ! -n "${thefolder}" ]
 then
+     theorigfolder="no folder originally passed"
      thefolder=${thefolder:=$(basename "$themsg_uri" | sed -e "s/[#0-9]*$//g")}
+else
+     theorigfolder="${thefolder}"
 fi
 
 # that's right, it seems like the folder isn't always sent correctly (or ever) by Mailbox Alert so we'll parse it from the uri. 
 # Updated 2023oct10 to check and see if it's been set by a flag before parsing from URI, since FiltaQuilla author seems like he's going to add foldername as a passable token in javascript actions
+
+
+if [[ ${noNotifcationsForFolders[@]} =~ $thefolder ]]
+then
+  skipNotification = true
+else
+  skipNotification = false
+fi
 
 if [ $onlyLogLastParametersSent == true ]
 then
@@ -124,26 +139,37 @@ echo "$(date)" > ~/.terminalNotifierForThunderbird/emailNotifierlockfile
 
 if [ $overlyVerboseDebugging == true ]
 then
-     echo '◊◊◊◊◊ STARTING NEW EMAIL, DUDE ◊◊◊◊◊' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
-     echo '◊◊◊◊◊dumping env: ' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo ' ' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo ' ' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo ' ' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo ' ' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo ' ' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo '##### STARTING NEW EMAIL, DUDE #####' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo '##### STARTING NEW EMAIL, DUDE #####' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo '##### STARTING NEW EMAIL, DUDE #####' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo '##### STARTING NEW EMAIL, DUDE #####' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo '##### STARTING NEW EMAIL, DUDE #####' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo '#####dumping env: ' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
      env >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
-     echo '◊◊◊◊◊Current (which pgrep):' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo '#####Current (which pgrep):' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
      which pgrep >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
-     echo '◊◊◊◊◊Current (pgrep -fl "[a-zA-Z]"  | grep [b]ird):' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo '#####Current (pgrep -fl "[a-zA-Z]"  | grep [b]ird):' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
      pgrep -fl "[a-zA-Z]" | grep [b]ird >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
-     echo '◊◊◊◊◊Current (pgrep -fl "bird"):' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo '#####Current (pgrep -fl "bird"):' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
      pgrep -fl "bird" >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
-     echo '◊◊◊◊◊Current pgrep -fl "betterbird"):' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo '#####Current pgrep -fl "betterbird"):' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
      pgrep -fl "betterbird" >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
-     echo '◊◊◊◊◊Current pgrep -fli "betterbird"):' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo '#####Current pgrep -fli "betterbird"):' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
      pgrep -fli "betterbird" >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
-     echo '◊◊◊◊◊Current ps -o args= $PPID):' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     #NO! Too much output echo '#####Current ps -o args= $PPID):' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
      ps -o args= $PPID >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
-     echo '◊◊◊◊◊Current ps -axMww' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     #NO! Too much output echo '#####Current ps -axMww' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
      ps -axMww >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
-     echo '◊◊◊◊◊Current (ps -axMww | grep [b]ird)' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo '#####Current (ps -axMww | grep [b]ird)' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
      ps -axMww | grep [b]ird >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
-     echo '◊◊◊◊◊about to pgrep -f betterbird. ' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo '#####folder originally passed was: ${theorigfolder}' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo '#####folder currently set to: ${thefolder}' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
+     echo '#####about to pgrep -f betterbird. ' >> ~/.terminalNotifierForThunderbird/emailnotifications.log 2>&1
 fi
 
 if pgrep -fli Betterbird.app > /dev/null 2>&1
@@ -151,14 +177,14 @@ if pgrep -fli Betterbird.app > /dev/null 2>&1
             then
                  if [ $overlyVerboseDebugging == true ]
                  then
-                      echo "◊◊◊◊◊betterbird found" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
+                      echo "#####betterbird found" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
                  fi
                  theAppPath="$pathToBetterbird/Contents/MacOS/betterbird-bin"
                  theAppIcon="file:/$pathToBetterbird/Contents/Resources/betterbird.icns"
             else
                  if [ $overlyVerboseDebugging == true ]
                  then
-                      echo "◊◊◊◊◊betterbird not found" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
+                      echo "#####betterbird not found" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
                  fi
                  theAppPath="$pathToThunderbird/Contents/MacOS/thunderbird-bin"
                  theAppIcon="file:/$pathToThunderbird/Contents/Resources/thunderbird.icns"
@@ -170,27 +196,40 @@ if [ -n "${thefolder}" ]
 then
     if $prohibitDupes && grep -Fq "$themsg_uri" ~/.terminalNotifierForThunderbird/emailnotifications.log
     then
-        echo "$(date): NO NOTIFICATION, dupe found. thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
+        echo "~A~ $(date): NO NOTIFICATION, dupe found. thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
     else
-        datediff=$(echo "($(date +%s) - $(date -j -f "%a %b %d %Y %H:%M:%S GMT%z" "$thedate" "+%s")) / 3600 / 24"|bc)
-        if [[ $datediff -lt 30 ]]
-        then
-            #only notify for emails dated within the last 30 days because fucking Thunderbird is stoopit.
-            echo "$(date): Notifying. thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
-            #run that puppy.
-            "$pathToTerminalNotifierApp"/Contents/MacOS/terminal-notifier -title "$thesender $thedate $thetime" -subtitle "$thesubject" -message "$thefolder" -execute "$theAppPath -mail \"$themsg_uri\"" -appIcon "$theAppIcon"
-        else
-            echo "$(date): Not Notifying because date is over 30 days ago. datediff: $datediff thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
-        fi
+         if $skipNotification
+         then
+         echo "~A2~ $(date): NO NOTIFICATION, prohibited folder found. theorigfolder: $theorigfolder, thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log         
+         else
+             datediff=$(echo "($(date +%s) - $(date -j -f "%a %b %d %Y %H:%M:%S GMT%z" "$thedate" "+%s")) / 3600 / 24"|bc)
+             if [[ $datediff -lt 30 ]]
+             then
+                 #only notify for emails dated within the last 30 days because fucking Thunderbird is stoopit.
+                 echo "~B~ $(date): Notifying. thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
+                 if [ $overlyVerboseDebugging == true ]
+                 then
+                     echo "command string " "$pathToTerminalNotifierApp"/Contents/MacOS/terminal-notifier -title \"$thesender $thedate $thetime\" -subtitle \"$thesubject\" -message \"$thefolder\" -execute \"$theAppPath -mail \\\"$themsg_uri\\\"\" -appIcon \"$theAppIcon\" 
+                 fi 
+                 #run that puppy.
+                 "$pathToTerminalNotifierApp"/Contents/MacOS/terminal-notifier -title "$thesender $thedate $thetime" -subtitle "$thesubject" -message "$thefolder" -execute "$theAppPath -mail \"$themsg_uri\"" -appIcon "$theAppIcon"
+             else
+                 echo "~C~ $(date): Not Notifying because date is over 30 days ago. datediff: $datediff thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
+             fi
+         fi
     fi
 else
-    echo "$(date): NO FOLDER SPECIFIED thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
+    echo "~D~ $(date): NO FOLDER SPECIFIED thesender: $thesender, thedate: $thedate, thetime: $thetime, thesubject: $thesubject, thefolder: $thefolder, themsg_uri: $themsg_uri" >> ~/.terminalNotifierForThunderbird/emailnotifications.log
 fi
 
 #Urgent Senders. ignore this section if you haven't specified $urgentSendersRegex
 
 if [[ $thesender =~ $urgentSendersRegex ]] 
 then 
+ if [ $overlyVerboseDebugging == true ]
+            then
+                echo '~E1~ osascript command string' (osascript -e "display notification \"IMPORTANT"'!'"\" with title \"$thesubject\" subtitle \"$thesender\" sound name \"Frog\"" -e "tell application \"Finder\"" -e "activate" -e "display dialog (\"Important email"'!'" Subject: $thesubject from $thesender\") buttons {\"Open\"} default button 1"  -e "end tell"\; "$theAppPath -mail \"$themsg_uri\"")  >> ~/.terminalNotifierForThunderbird/emailnotifications.log
+            fi 
 	(osascript -e "display notification \"IMPORTANT"'!'"\" with title \"$thesubject\" subtitle \"$thesender\" sound name \"Frog\"" -e "tell application \"Finder\"" -e "activate" -e "display dialog (\"Important email"'!'" Subject: $thesubject from $thesender\") buttons {\"Open\"} default button 1"  -e "end tell";
 	"$theAppPath -mail \"$themsg_uri\"") &
 fi
